@@ -1,0 +1,4 @@
+games/
+config.json
+__pycache__/
+chess-coach-venv/
