@@ -24,7 +24,7 @@ def generate_chess_analysis(pgn, user_alias,type='single'):
             also recommendations for how they can improve as a player. You don't have to use specific move combinations unless it is to appreciate a checkmate combo or provide missed checkmate combos. \
                  The games could be across different time formats. Keep that into account in your analysis. Focus more on subjective feedback.  Any specific material you can refer them to will also be helpful. :\n\n{pgn}"
 
-    client = OpenAI(api_key="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") 
+    client = OpenAI() 
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
