@@ -1,4 +1,5 @@
 # LLM-ChessCoach
+![Chess Coaching Application](images/LLM-ChessCoach.png)
 
 ## Introduction
 LLM-ChessCoach is an innovative tool that leverages Large Language Models (LLM), specifically GPT-3, to analyze chess games. It fetches games from online chess platforms, analyzes them, and provides insightful feedback to help players improve their strategies.
