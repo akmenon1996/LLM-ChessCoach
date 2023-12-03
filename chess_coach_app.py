@@ -69,7 +69,10 @@ def results_page():
     if 'selected_game' in st.session_state:
         with open(st.session_state['selected_game'], 'r') as analysis_file:
             analysis_content = analysis_file.read()
-        st.subheader(f"Analysis for {os.path.basename(st.session_state['selected_game'])}")
+        if 'overall' not in os.path.basename(st.session_state['selected_game']):
+            st.subheader(f"Analysis for {os.path.basename(st.session_state['selected_game'])}")
+        else:
+            st.subheader(f"Overall analysis of play")
         st.write(analysis_content)
     
     if st.button("Load Games again!"):
@@ -93,6 +96,8 @@ def page_switch_logic():
         options_page()
 
 def options_page():
+    st.title("LLM Chess Coach")
+    st.text("Please choose what kind of Analysis you want to do.")
     if st.button("New Run"):
         st.session_state['new_run'] = True 
         page_switch_logic()
