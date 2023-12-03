@@ -35,3 +35,13 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 ## Acknowledgements
 - Chess websites for game data.
 - OpenAI's GPT-3 for game analysis.
+
+
+## UI Screenshots
+![Page 1](images/Page1.png)
+
+![New Run](images/New%20Run%20-%20Empty.png)
+
+![Existing Run](images/Existing%20Run%20-%20Filled.png)
+
+![Example Analysis](images/ExampleAnalysis.png)
