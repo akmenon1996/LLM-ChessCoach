@@ -14,10 +14,15 @@ def extract_players_from_pgn(pgn_content):
     black_player = game.headers.get("Black", "Unknown")
     return white_player, black_player
 
-def generate_chess_analysis(pgn, user_alias):
+def generate_chess_analysis(pgn, user_alias,type='single'):
     """Generate chess game analysis using GPT-3."""
     white_player, black_player = extract_players_from_pgn(pgn)
-    prompt = f"You are a chess grandmaster rated 3200. We are analyzing a chess game between {white_player} and {black_player}:\n\nProvide analysis and suggestions for {user_alias}:\n\n{pgn}"
+    if type == 'single':
+        prompt = f"You are a chess grandmaster rated 3200. We are analyzing a chess game between {white_player} and {black_player}:\n\nProvide analysis and suggestions for {user_alias}:\n\n{pgn}"
+    elif type =='combined':
+         prompt = f"You are a chess grandmaster rated 3200. We are analyzing multiple chess games between {white_player} and other players:\n\n Provide your overall analysis of the player {user_alias} and \
+            also recommendations for how they can improve as a player. You don't have to use specific move combinations unless it is to appreciate a checkmate combo or provide missed checkmate combos. \
+                 The games could be across different time formats. Keep that into account in your analysis. Focus more on subjective feedback.  Any specific material you can refer them to will also be helpful. :\n\n{pgn}"
 
     client = OpenAI() 
     completion = client.chat.completions.create(
@@ -32,6 +37,8 @@ def analyze_games(pgn_folder, user_alias):
     """Analyze a batch of chess games and generate an overall analysis."""
 
     # List to store individual PGNs
+    global games_folder
+    games_folder = pgn_folder
     individual_pgns = []
 
     game_data = []
@@ -50,13 +57,28 @@ def analyze_games(pgn_folder, user_alias):
     # Define a function to generate analysis for a game
     def generate_analysis(game):
         pgn_content, filename = game
-        analysis = generate_chess_analysis(pgn_content, user_alias)
+        game = filename.split('.')[0]
+        analysis_file = f'{games_folder}/analysis/{game}_analysis.txt'
+        if os.path.exists(analysis_file):
+            print(f"Analysis for {game} already exists.")
+            f = open(analysis_file)
+            analysis = f.read()
+            f.close()
+        else:
+            analysis = generate_chess_analysis(pgn_content, user_alias)
+            analysis_file = game + "_analysis.txt"
+            analysis_root = os.path.join(games_folder, 'analysis')
+            os.makedirs(analysis_root, exist_ok=True)
+            analysis_file_path = os.path.join(analysis_root, analysis_file)
+            with open(analysis_file_path, "w") as f:
+                    f.write(str(analysis))
+            print(f"Analysis for {filename} saved to {analysis_file_path}")
         return filename, analysis
 
     # Use concurrent.futures to generate analyses concurrently
     num_cores = multiprocessing.cpu_count()
     print(f"Number of available cores --> {num_cores}")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores-2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores-6) as executor:
         future_to_filename = {executor.submit(generate_analysis, game): game for game in game_data}
 
         # Wait for all futures to complete
@@ -65,20 +87,13 @@ def analyze_games(pgn_folder, user_alias):
         # Write analyses to files concurrently
         for future in concurrent.futures.as_completed(future_to_filename):
             filename, analysis = future.result()
-            analysis_file = os.path.splitext(filename)[0] + "_analysis.txt"
-            analysis_root = os.path.join(root, 'analysis')
-            os.makedirs(analysis_root, exist_ok=True)
-            analysis_file_path = os.path.join(analysis_root, analysis_file)
-            if not os.path.isfile(analysis_file_path):
-                with open(analysis_file_path, "w") as f:
-                    f.write(str(analysis))
-                print(f"Analysis for {filename} saved to {analysis_file_path}")
+            
 
     # Combine all individual PGNS into one
     combined_pgn = "\n".join(individual_pgns)
 
     # Generate an overall analysis for all the games
-    overall_analysis = generate_chess_analysis(combined_pgn, user_alias)
+    overall_analysis = generate_chess_analysis(combined_pgn, user_alias,type='combined')
 
     # Save the overall analysis to a file
     analysis_folder = os.path.join(pgn_folder, 'analysis')

@@ -52,8 +52,11 @@ class ChessGameDownloader:
         self.folder = output_folder
         return output_folder
     
-    def run_analysis(self):
-        analysis_status = analyze_chess_games.analyze_games(self.folder, self.username)
+    def run_analysis(self,username = '',run_id = ''):
+        if run_id == '' and username == '':
+            analysis_status = analyze_chess_games.analyze_games(self.folder, username)
+        else:
+            analysis_status = analyze_chess_games.analyze_games(f'games/{run_id}/', username)
         return analysis_status
 
     def create_output_folder(self):
