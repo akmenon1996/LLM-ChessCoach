@@ -84,7 +84,11 @@ def analyze_games(pgn_folder, user_alias):
     # Use concurrent.futures to generate analyses concurrently
     num_cores = multiprocessing.cpu_count()
     print(f"Number of available cores --> {num_cores}")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores-6) as executor:
+    # Ensure at least one worker. Subtracting a fixed value may result in
+    # negative or zero workers on machines with few cores, which would
+    # raise a `ValueError`.
+    max_workers = max(1, num_cores - 1)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_filename = {executor.submit(generate_analysis, game): game for game in game_data}
 
         # Wait for all futures to complete
