@@ -28,11 +28,18 @@ async def analyze(date: str):
 
 @app.get("/api/analysis/{run_id}")
 async def get_analysis(run_id: str):
-    analysis_root = os.path.join('games', run_id, 'analysis')
+    base_dir = os.path.abspath('games')
+    analysis_root = os.path.normpath(os.path.join(base_dir, run_id, 'analysis'))
     result = {}
+    if not analysis_root.startswith(base_dir):
+        # Prevent path traversal
+        return {}
     if os.path.exists(analysis_root):
         for file in os.listdir(analysis_root):
-            with open(os.path.join(analysis_root, file)) as f:
+            file_path = os.path.normpath(os.path.join(analysis_root, file))
+            if not file_path.startswith(analysis_root):
+                continue
+            with open(file_path) as f:
                 result[file] = f.read()
     return result
 
