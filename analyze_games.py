@@ -6,6 +6,8 @@ from openai import OpenAI
 import concurrent.futures
 import threading
 import multiprocessing
+import json
+from stockfish_engine import evaluate_game
 
 def extract_players_from_pgn(pgn_content):
     """Extract White and Black players from PGN content."""
@@ -66,12 +68,16 @@ def analyze_games(pgn_folder, user_alias):
             f.close()
         else:
             analysis = generate_chess_analysis(pgn_content, user_alias)
+            engine_eval = evaluate_game(os.path.join(games_folder, filename))
+            eval_file = f'{game}_engine.json'
             analysis_file = game + "_analysis.txt"
             analysis_root = os.path.join(games_folder, 'analysis')
             os.makedirs(analysis_root, exist_ok=True)
             analysis_file_path = os.path.join(analysis_root, analysis_file)
             with open(analysis_file_path, "w") as f:
                     f.write(str(analysis))
+            with open(os.path.join(analysis_root, eval_file), 'w') as f:
+                    json.dump(engine_eval, f)
             print(f"Analysis for {filename} saved to {analysis_file_path}")
         return filename, analysis
 
